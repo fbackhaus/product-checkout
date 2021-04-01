@@ -5,16 +5,18 @@ import com.novicap.checkout.model.Product;
 import com.novicap.checkout.model.ProductCode;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class ShoppingBasketService {
+public class ShoppingService {
 
-    private Map<ProductCode, Integer> basket;
+    private final Map<ProductCode, Integer> basket;
     private final DiscountService discountService;
     private final ProductService productService;
 
-    public ShoppingBasketService(Map<ProductCode, Discount> priceRules) {
+    public ShoppingService(Map<ProductCode, Discount> priceRules) {
+        this.basket = new HashMap<>();
         this.discountService = new DiscountService(priceRules);
         this.productService = new ProductService();
     }
@@ -29,11 +31,18 @@ public class ShoppingBasketService {
         }
     }
 
+    private void emptyShoppingBasket() {
+        basket.clear();
+    }
+
     public BigDecimal calculateTotal() {
-        return basket.entrySet()
+        BigDecimal totalPrice = basket.entrySet()
                 .parallelStream()
                 .map((this::calculateTotalPerProduct))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        emptyShoppingBasket();
+        return totalPrice;
     }
 
     private BigDecimal calculateTotalPerProduct(Map.Entry<ProductCode, Integer> productCodeIntegerEntry) {

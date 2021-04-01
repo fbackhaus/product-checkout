@@ -5,24 +5,24 @@ package com.novicap.checkout;
 
 import com.novicap.checkout.model.Discount;
 import com.novicap.checkout.model.ProductCode;
-import com.novicap.checkout.service.ShoppingBasketService;
+import com.novicap.checkout.service.ShoppingService;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
 public class Checkout {
 
-    private final ShoppingBasketService shoppingBasketService;
+    private final ShoppingService shoppingService;
 
     public Checkout(Map<ProductCode, Discount> priceRules) {
-        shoppingBasketService = new ShoppingBasketService(priceRules);
+        shoppingService = new ShoppingService(priceRules);
     }
 
     public void scan(ProductCode productCode) {
-        shoppingBasketService.addProductToBasket(productCode);
+        shoppingService.addProductToBasket(productCode);
     }
 
     public BigDecimal total() {
-        return shoppingBasketService.calculateTotal();
+        return shoppingService.calculateTotal();
     }
 }

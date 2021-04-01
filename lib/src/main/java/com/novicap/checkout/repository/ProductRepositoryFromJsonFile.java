@@ -1,13 +1,10 @@
 package com.novicap.checkout.repository;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.novicap.checkout.exception.UnreadableProductsFileException;
 import com.novicap.checkout.model.Product;
 import com.novicap.checkout.model.ProductCode;
 
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
@@ -23,11 +20,13 @@ public class ProductRepositoryFromJsonFile implements ProductRepository {
 
     @Override
     public Map<ProductCode, Product> getProducts() {
-        try (InputStream fileStream = new FileInputStream("products.json")) {
+        try (InputStream fileStream = ClassLoader.getSystemResourceAsStream("products.json")) {
             List<Product> productList = Arrays.asList(mapper.readValue(fileStream, Product[].class));
-            return productList.stream().collect(Collectors.toMap(Product::getCode, Function.identity()));
+
+            return productList.stream()
+                    .collect(Collectors.toMap(Product::getCode, Function.identity()));
         } catch (IOException e) {
-            throw new UnreadableProductsFileException(UNREADABLE_FILE_MESSAGE);
+            throw new UnreadableProductsFileException(UNREADABLE_FILE_MESSAGE, e);
         }
     }
 }

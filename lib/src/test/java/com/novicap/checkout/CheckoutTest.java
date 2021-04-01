@@ -3,9 +3,102 @@
  */
 package com.novicap.checkout;
 
+import com.novicap.checkout.model.BulkPurchaseDiscount;
+import com.novicap.checkout.model.Discount;
+import com.novicap.checkout.model.ProductCode;
+import com.novicap.checkout.model.SpecialDiscount;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 class CheckoutTest {
 
+    @Test
+    void createCheckoutWithSpecialPromotion() {
+        Map<ProductCode, Discount> discountRules = new HashMap<>();
+        discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
+
+        Checkout checkout = new Checkout(discountRules);
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.VOUCHER);
+
+        BigDecimal expectedPrice = new BigDecimal(5).setScale(2);
+
+        Assertions.assertEquals(expectedPrice, checkout.total());
+    }
+
+    @Test
+    void createCheckoutWithBulkPurchasePromotion() {
+        Map<ProductCode, Discount> discountRules = new HashMap<>();
+        discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
+
+        Checkout checkout = new Checkout(discountRules);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.TSHIRT);
+
+        BigDecimal expectedPrice = new BigDecimal(57).setScale(2);
+
+        Assertions.assertEquals(expectedPrice, checkout.total());
+    }
+
+    @Test
+    void testCheckoutWithChallengeExamples() {
+        Map<ProductCode, Discount> discountRules = new HashMap<>();
+        discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
+        discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
+
+        Checkout checkout = new Checkout(discountRules);
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.MUG);
+
+        BigDecimal expectedPrice = new BigDecimal("32.50").setScale(2);
+
+        Assertions.assertEquals(expectedPrice, checkout.total());
+
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.VOUCHER);
+
+        expectedPrice = new BigDecimal("25.00").setScale(2);
+        Assertions.assertEquals(expectedPrice, checkout.total());
+
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.TSHIRT);
+
+        expectedPrice = new BigDecimal("81.00").setScale(2);
+        Assertions.assertEquals(expectedPrice, checkout.total());
+
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.VOUCHER);
+        checkout.scan(ProductCode.MUG);
+        checkout.scan(ProductCode.TSHIRT);
+        checkout.scan(ProductCode.TSHIRT);
+
+        expectedPrice = new BigDecimal("74.50").setScale(2);
+        Assertions.assertEquals(expectedPrice, checkout.total());
+    }
+
+    private SpecialDiscount getSpecialDiscount(int minToPurchase, int itemsToCharge) {
+        return SpecialDiscount.builder()
+                .minimumNumberOfItemsToPurchase(minToPurchase)
+                .numberOfItemsToCharge(itemsToCharge)
+                .build();
+    }
+
+    private BulkPurchaseDiscount getBulkPurchaseDiscount(int minToPurchase, BigDecimal priceToCharge) {
+        return BulkPurchaseDiscount.builder()
+                .minimumNumberOfItems(minToPurchase)
+                .discountedPrice(priceToCharge)
+                .build();
+    }
 }

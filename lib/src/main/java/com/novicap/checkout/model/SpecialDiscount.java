@@ -13,10 +13,10 @@ public class SpecialDiscount implements Discount {
     @Override
     public BigDecimal apply(Product product, int purchasedQuantity) {
         if (purchasedQuantity < minimumNumberOfItemsToPurchase) {
-            return product.getListPrice().multiply(new BigDecimal(purchasedQuantity));
+            return product.getPrice().multiply(new BigDecimal(purchasedQuantity));
         }
         int itemsToCharge = getQuantityToCharge(purchasedQuantity);
-        return product.getListPrice().multiply(new BigDecimal(itemsToCharge));
+        return product.getPrice().multiply(new BigDecimal(itemsToCharge));
     }
 
     /**

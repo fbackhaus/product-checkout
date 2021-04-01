@@ -7,16 +7,21 @@ import java.math.BigDecimal;
 @Builder
 public class BulkPurchaseDiscount implements Discount {
 
-    private final ProductCode productCode;
     private final int minimumNumberOfItems;
-    private final BigDecimal discountedPricePerUnit;
+    private final BigDecimal discountedPrice;
 
     @Override
     public BigDecimal apply(Product product, int purchasedQuantity) {
-        if (purchasedQuantity > minimumNumberOfItems) {
-            return discountedPricePerUnit.multiply(new BigDecimal(purchasedQuantity));
-        } else {
-            return product.getListPrice().multiply(new BigDecimal(purchasedQuantity));
-        }
+        return purchasedQuantity >= minimumNumberOfItems ?
+                applyPriceDiscount(purchasedQuantity, discountedPrice) :
+                applyListPrice(purchasedQuantity, product.getPrice());
+    }
+
+    private BigDecimal applyListPrice(int purchasedQuantity, BigDecimal price) {
+        return price.multiply(new BigDecimal(purchasedQuantity));
+    }
+
+    private BigDecimal applyPriceDiscount(int purchasedQuantity, BigDecimal pricePerUnit) {
+        return pricePerUnit.multiply(new BigDecimal(purchasedQuantity));
     }
 }
