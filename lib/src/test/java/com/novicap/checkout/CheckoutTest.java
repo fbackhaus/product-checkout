@@ -16,18 +16,16 @@ import java.util.Map;
 
 class CheckoutTest {
 
+    private Checkout checkout;
+
     @Test
     void createCheckoutWithSpecialPromotion() {
         Map<ProductCode, Discount> discountRules = new HashMap<>();
         discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
 
-        Checkout checkout = new Checkout(discountRules);
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.VOUCHER);
-
-        BigDecimal expectedPrice = new BigDecimal(5).setScale(2);
-
-        Assertions.assertEquals(expectedPrice, checkout.total());
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.VOUCHER);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(5));
     }
 
     @Test
@@ -35,14 +33,9 @@ class CheckoutTest {
         Map<ProductCode, Discount> discountRules = new HashMap<>();
         discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
 
-        Checkout checkout = new Checkout(discountRules);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.TSHIRT);
-
-        BigDecimal expectedPrice = new BigDecimal(57).setScale(2);
-
-        Assertions.assertEquals(expectedPrice, checkout.total());
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.TSHIRT, ProductCode.TSHIRT, ProductCode.TSHIRT);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(57));
     }
 
     @Test
@@ -51,41 +44,47 @@ class CheckoutTest {
         discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
         discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
 
-        Checkout checkout = new Checkout(discountRules);
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.MUG);
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.TSHIRT, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal("32.50"));
 
-        BigDecimal expectedPrice = new BigDecimal("32.50").setScale(2);
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.TSHIRT, ProductCode.VOUCHER);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(25));
 
-        Assertions.assertEquals(expectedPrice, checkout.total());
+        whenIScanTheseProducts(ProductCode.TSHIRT, ProductCode.TSHIRT, ProductCode.TSHIRT,
+                ProductCode.VOUCHER, ProductCode.TSHIRT);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(81));
 
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.VOUCHER);
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.TSHIRT, ProductCode.VOUCHER,
+                ProductCode.VOUCHER, ProductCode.MUG, ProductCode.TSHIRT, ProductCode.TSHIRT);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal("74.50"));
+    }
 
-        expectedPrice = new BigDecimal("25.00").setScale(2);
-        Assertions.assertEquals(expectedPrice, checkout.total());
+    @Test
+    void createCheckoutWith3for2SpecialPromotion() {
+        Map<ProductCode, Discount> discountRules = new HashMap<>();
+        discountRules.put(ProductCode.MUG, getSpecialDiscount(3, 2));
 
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.TSHIRT);
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(15));
 
-        expectedPrice = new BigDecimal("81.00").setScale(2);
-        Assertions.assertEquals(expectedPrice, checkout.total());
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(15));
 
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.VOUCHER);
-        checkout.scan(ProductCode.MUG);
-        checkout.scan(ProductCode.TSHIRT);
-        checkout.scan(ProductCode.TSHIRT);
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal("22.50"));
 
-        expectedPrice = new BigDecimal("74.50").setScale(2);
-        Assertions.assertEquals(expectedPrice, checkout.total());
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(30));
+
+        givenAListOfDiscountRules(discountRules);
+        whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG,
+                ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(30));
     }
 
     private SpecialDiscount getSpecialDiscount(int minToPurchase, int itemsToCharge) {
@@ -100,5 +99,20 @@ class CheckoutTest {
                 .minimumNumberOfItems(minToPurchase)
                 .discountedPrice(priceToCharge)
                 .build();
+    }
+
+    private void givenAListOfDiscountRules(Map<ProductCode, Discount> discountRules) {
+        checkout = new Checkout(discountRules);
+    }
+
+    private void whenIScanTheseProducts(ProductCode... productCodes) {
+        for (ProductCode productCode : productCodes) {
+            checkout.scan(productCode);
+        }
+    }
+
+
+    private void thenTheExpectedPriceMatchesTheTotal(BigDecimal expectedPrice) {
+        Assertions.assertEquals(expectedPrice.setScale(2), checkout.total());
     }
 }

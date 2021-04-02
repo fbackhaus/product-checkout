@@ -28,6 +28,9 @@ public class SpecialDiscount implements Discount {
      * @return the quantity that needs to be charged according to the discount
      */
     private int getQuantityToCharge(int purchasedQuantity) {
-        return purchasedQuantity / minimumNumberOfItemsToPurchase;
+        if (purchasedQuantity % minimumNumberOfItemsToPurchase == 0) {
+            return purchasedQuantity / minimumNumberOfItemsToPurchase * numberOfItemsToCharge;
+        }
+        return numberOfItemsToCharge + purchasedQuantity - minimumNumberOfItemsToPurchase;
     }
 }
