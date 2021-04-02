@@ -12,9 +12,20 @@ public class SpecialDiscount implements Discount {
 
     @Override
     public BigDecimal apply(Product product, int purchasedQuantity) {
-        if (purchasedQuantity < minimumNumberOfItemsToPurchase) {
-            return product.getPrice().multiply(new BigDecimal(purchasedQuantity));
-        }
+        return shouldApplyDiscount(purchasedQuantity) ?
+                calculateDiscountedPrice(product, purchasedQuantity) :
+                calculateListPrice(product, purchasedQuantity);
+    }
+
+    private boolean shouldApplyDiscount(int purchasedQuantity) {
+        return purchasedQuantity >= minimumNumberOfItemsToPurchase;
+    }
+
+    private BigDecimal calculateListPrice(Product product, int purchasedQuantity) {
+        return product.getPrice().multiply(new BigDecimal(purchasedQuantity));
+    }
+
+    private BigDecimal calculateDiscountedPrice(Product product, int purchasedQuantity) {
         int itemsToCharge = getQuantityToCharge(purchasedQuantity);
         return product.getPrice().multiply(new BigDecimal(itemsToCharge));
     }
@@ -28,9 +39,13 @@ public class SpecialDiscount implements Discount {
      * @return the quantity that needs to be charged according to the discount
      */
     private int getQuantityToCharge(int purchasedQuantity) {
-        if (purchasedQuantity % minimumNumberOfItemsToPurchase == 0) {
+        if (allItemsFitIntoThePromotion(purchasedQuantity)) {
             return purchasedQuantity / minimumNumberOfItemsToPurchase * numberOfItemsToCharge;
         }
         return numberOfItemsToCharge + purchasedQuantity - minimumNumberOfItemsToPurchase;
+    }
+
+    private boolean allItemsFitIntoThePromotion(int purchasedQuantity) {
+        return purchasedQuantity % minimumNumberOfItemsToPurchase == 0;
     }
 }
