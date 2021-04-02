@@ -8,13 +8,25 @@ import com.novicap.checkout.model.ProductCode;
 import com.novicap.checkout.service.ShoppingService;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Checkout {
 
     private final ShoppingService shoppingService;
 
+    /**
+     * Creates a new checkout with discount rules
+     */
     public Checkout(Map<ProductCode, Discount> priceRules) {
+        shoppingService = new ShoppingService(priceRules);
+    }
+
+    /**
+     * Creates a new checkout without discount rules
+     */
+    public Checkout() {
+        Map<ProductCode, Discount> priceRules = new HashMap<>();
         shoppingService = new ShoppingService(priceRules);
     }
 

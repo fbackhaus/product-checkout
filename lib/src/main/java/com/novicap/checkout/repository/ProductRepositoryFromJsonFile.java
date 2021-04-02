@@ -18,6 +18,11 @@ public class ProductRepositoryFromJsonFile implements ProductRepository {
     private final ObjectMapper mapper = new ObjectMapper();
     private static final String UNREADABLE_FILE_MESSAGE = "Error when trying to read products file";
 
+    /**
+     * Reads the products file in the resources folder, and returns it
+     * @return a map with the ProductCode as key and the full product information as a value
+     * @throws UnreadableProductsFileException if there is a problem when parsing the json file
+     */
     @Override
     public Map<ProductCode, Product> getProducts() {
         try (InputStream fileStream = ClassLoader.getSystemResourceAsStream("products.json")) {

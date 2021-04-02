@@ -17,6 +17,11 @@ public class ProductService {
         products = productRepository.getProducts();
     }
 
+    /**
+     * Returns the full product information from a product code
+     * @param productCode product scanned
+     * @return full product information
+     */
     public Product getProductInfoFromCode(ProductCode productCode) {
         return products.get(productCode);
     }

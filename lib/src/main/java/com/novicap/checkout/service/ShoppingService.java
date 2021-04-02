@@ -21,6 +21,10 @@ public class ShoppingService {
         this.productService = new ProductService();
     }
 
+    /**
+     * Adds a productCode to the basket and calculates the total number of items per product
+     * @param productCode product code scanned
+     */
     public void addProductToBasket(ProductCode productCode) {
         Optional<Integer> currentQuantity = Optional.ofNullable(basket.get(productCode));
 
@@ -31,10 +35,17 @@ public class ShoppingService {
         }
     }
 
+    /**
+     * Clears the basket of all items
+     */
     private void emptyShoppingBasket() {
         basket.clear();
     }
 
+    /**
+     * Calculates the total price of the items in the basket
+     * @return total price of the items in the basket after applying discounts
+     */
     public BigDecimal calculateTotal() {
         BigDecimal totalPrice = basket.entrySet()
                 .parallelStream()
@@ -45,6 +56,11 @@ public class ShoppingService {
         return totalPrice;
     }
 
+    /**
+     * Calculates the total price per product, after applying a discount if there is one
+     * @param productCodeIntegerEntry a key value pair containing the product and the quantity purchased of that product
+     * @return final price per product after applying a discount if there is one
+     */
     private BigDecimal calculateTotalPerProduct(Map.Entry<ProductCode, Integer> productCodeIntegerEntry) {
         Product product = productService.getProductInfoFromCode(productCodeIntegerEntry.getKey());
         return discountService.getFinalPricePerProductCode(product, productCodeIntegerEntry.getValue());

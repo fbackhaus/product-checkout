@@ -19,7 +19,18 @@ class CheckoutTest {
     private Checkout checkout;
 
     @Test
-    void createCheckoutWithSpecialPromotion() {
+    void createCheckoutWithoutDiscounts() {
+        checkout = new Checkout();
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.VOUCHER);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal(10));
+
+        whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.TSHIRT, ProductCode.VOUCHER,
+                ProductCode.VOUCHER, ProductCode.MUG, ProductCode.TSHIRT, ProductCode.TSHIRT);
+        thenTheExpectedPriceMatchesTheTotal(new BigDecimal("82.50"));
+    }
+
+    @Test
+    void createCheckoutWithSpecialDiscount() {
         Map<ProductCode, Discount> discountRules = new HashMap<>();
         discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
 
@@ -29,7 +40,7 @@ class CheckoutTest {
     }
 
     @Test
-    void createCheckoutWithBulkPurchasePromotion() {
+    void createCheckoutWithBulkPurchaseDiscount() {
         Map<ProductCode, Discount> discountRules = new HashMap<>();
         discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
 
@@ -61,7 +72,7 @@ class CheckoutTest {
     }
 
     @Test
-    void createCheckoutWith3for2SpecialPromotion() {
+    void createCheckoutWith3for2SpecialDiscount() {
         Map<ProductCode, Discount> discountRules = new HashMap<>();
         discountRules.put(ProductCode.MUG, getSpecialDiscount(3, 2));
 
