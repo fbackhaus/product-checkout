@@ -5,6 +5,14 @@
 A Java Checkout library that allows you scan products and calculate the purchase total, applying different
 kinds of discounts
 
+This library has been built using:
+- Java 11
+- Gradle 6.8.3
+
+Always respecting the interface found in the [code challenge page](https://novicap.com/en/code-challenge/)
+
+You can find tests for the challenge examples and more in the [CheckoutTest](./lib/src/test/java/com/novicap/checkout/CheckoutTest.java) class 
+
 ## Build and Run Tests
 
 ```shell
