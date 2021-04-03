@@ -2,7 +2,7 @@
 
 ## Summary
 
-A Java Checkout library that allows you scan products and calculate the final price of a shopping, applying different
+A Java Checkout library that allows you scan products and calculate the purchase total, applying different
 kinds of discounts
 
 ## Build and Run Tests
