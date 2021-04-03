@@ -129,4 +129,7 @@ checkout.scan(productCode);
 ```
 
 If you have finished scanning products, just call the `total()` method. This will apply the discounts if appliable, and
-calculate the total purchase value
+calculate the total purchase value, returning it as a `BigDecimal` object.
+```java
+BigDecimal total = checkout.total();
+```
