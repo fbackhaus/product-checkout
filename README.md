@@ -2,7 +2,7 @@
 
 ## Summary
 
-A Java Checkout library that allows you scan products and calculate the final price of a shopping, applying different
+A Java Checkout library that allows you scan products and calculate the purchase total, applying different
 kinds of discounts
 
 ## Build and Run Tests
@@ -15,7 +15,7 @@ kinds of discounts
 
 ### Creating discounts
 
-All discounts implement the [Discount](./src/main/java/com/novicap/checkout/model/Discount.java) interface, that applies
+All discounts implement the [Discount](./lib/src/main/java/com/novicap/checkout/model/Discount.java) interface, that applies
 a discount if the conditions are met
 
 #### Special Discounts
@@ -81,14 +81,14 @@ SpecialDiscount voucherDiscount = SpecialDiscount.builder()
         .numberOfItemsToCharge(1)
         .build();
 
-discountRules.put(ProductCode.VOUCHER,voucherDiscount)
+discountRules.put(ProductCode.VOUCHER, voucherDiscount)
 
 BulkPurchaseDiscount tShirtDiscount = BulkPurchaseDiscount.builder()
         .minimumNumberOfItems(3)
         .discountedPrice(new BigDecimal("19.00"))
         .build();
 
-discountRules.put(ProductCode.TSHIRT,tShirtDiscount)
+discountRules.put(ProductCode.TSHIRT, tShirtDiscount)
 
 //Create checkout
 Checkout checkout = new Checkout(discountRules);
@@ -105,7 +105,7 @@ Checkout checkout = new Checkout();
 ## Modifying products
 
 If you need to change a product, or it's list price, you need to change
-the [products.json](./src/main/resources/products.json) file. It has the following structure
+the [products.json](./lib/src/main/resources/products.json) file. It has the following structure
 
 ```json
 [
@@ -128,8 +128,8 @@ If you need to scan a product, just call the `scan()` method in the checkout obj
 checkout.scan(productCode);
 ```
 
-If you have finished scanning products, just call the `total()` method. This will apply the discounts if appliable, and
-calculate the total purchase value, returning it as a `BigDecimal` object.
+If you have finished scanning products, just call the `total()` method. This will apply the discounts if conditions are met,
+and calculate the total purchase value, returning it as a `BigDecimal` object.
 ```java
 BigDecimal total = checkout.total();
 ```
