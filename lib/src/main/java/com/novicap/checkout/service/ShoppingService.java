@@ -6,6 +6,7 @@ import com.novicap.checkout.model.ProductCode;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -15,9 +16,9 @@ public class ShoppingService {
     private final DiscountService discountService;
     private final ProductService productService;
 
-    public ShoppingService(Map<ProductCode, Discount> priceRules) {
+    public ShoppingService(List<Discount> discounts) {
         this.basket = new HashMap<>();
-        this.discountService = new DiscountService(priceRules);
+        this.discountService = new DiscountService(discounts);
         this.productService = new ProductService();
     }
 
@@ -47,23 +48,25 @@ public class ShoppingService {
      * @return total price of the items in the basket after applying discounts
      */
     public BigDecimal calculateTotal() {
-        BigDecimal totalPrice = basket.entrySet()
+        BigDecimal listPriceTotal = basket.entrySet()
                 .parallelStream()
-                .map((this::calculateTotalPerProduct))
+                .map((this::calculateListPrice))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal finalPrice = discountService.applyDiscounts(basket, listPriceTotal);
+
         emptyShoppingBasket();
-        return totalPrice;
+        return finalPrice;
     }
 
     /**
-     * Calculates the total price per product, after applying a discount if there is one
-     * @param productCodeIntegerEntry a key value pair containing the product and the quantity purchased of that product
-     * @return final price per product after applying a discount if there is one
+     *
+     * @param productCodeIntegerEntry each one of the elements in the basket (ProductCode, quantityPurchasedOfTheItem)
+     * @return total list price without applying any discount
      */
-    private BigDecimal calculateTotalPerProduct(Map.Entry<ProductCode, Integer> productCodeIntegerEntry) {
+    private BigDecimal calculateListPrice(Map.Entry<ProductCode, Integer> productCodeIntegerEntry) {
         Product product = productService.getProductInfoFromCode(productCodeIntegerEntry.getKey());
-        return discountService.getFinalPricePerProductCode(product, productCodeIntegerEntry.getValue());
+        return discountService.getPriceWithoutDiscount(product, productCodeIntegerEntry.getValue());
     }
 
 }

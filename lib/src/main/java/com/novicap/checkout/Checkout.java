@@ -8,8 +8,8 @@ import com.novicap.checkout.model.ProductCode;
 import com.novicap.checkout.service.ShoppingService;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Checkout {
 
@@ -18,16 +18,16 @@ public class Checkout {
     /**
      * Creates a new checkout with discount rules
      */
-    public Checkout(Map<ProductCode, Discount> priceRules) {
-        shoppingService = new ShoppingService(priceRules);
+    public Checkout(List<Discount> discounts) {
+        shoppingService = new ShoppingService(discounts);
     }
 
     /**
      * Creates a new checkout without discount rules
      */
     public Checkout() {
-        Map<ProductCode, Discount> priceRules = new HashMap<>();
-        shoppingService = new ShoppingService(priceRules);
+        List<Discount> discounts = new ArrayList<>();
+        shoppingService = new ShoppingService(discounts);
     }
 
     public void scan(ProductCode productCode) {

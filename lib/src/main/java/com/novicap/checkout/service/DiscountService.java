@@ -5,29 +5,15 @@ import com.novicap.checkout.model.Product;
 import com.novicap.checkout.model.ProductCode;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class DiscountService {
 
-    private final Map<ProductCode, Discount> discountRulesPerProduct;
+    private final List<Discount> discounts;
 
-    public DiscountService(Map<ProductCode, Discount> discountRulesPerProduct) {
-        this.discountRulesPerProduct = discountRulesPerProduct;
-    }
-
-    /**
-     * Checks if there's a discount to be applied to a product, and applies it
-     * @param product Product purchased
-     * @param quantity total quantity purchased of that product
-     * @return the discounted price if there's a discount, or the full price if there is not
-     */
-    public BigDecimal getFinalPricePerProductCode(Product product, int quantity) {
-        Optional<Discount> discountRule = Optional.ofNullable(discountRulesPerProduct.get(product.getCode()));
-        if (discountRule.isPresent()) {
-            return discountRule.get().apply(product, quantity);
-        }
-        return getPriceWithoutDiscount(product, quantity);
+    public DiscountService(List<Discount> discounts) {
+        this.discounts = discounts;
     }
 
     /**
@@ -36,7 +22,21 @@ public class DiscountService {
      * @param quantity total quantity purchased of that product
      * @return the full price, given than there is no discount for this product
      */
-    private BigDecimal getPriceWithoutDiscount(Product product, int quantity) {
+    public BigDecimal getPriceWithoutDiscount(Product product, int quantity) {
         return product.getPrice().multiply(new BigDecimal(quantity));
+    }
+
+    /**
+     * Applies discounts to the list price total
+     * @param basket containing the products the customer has purchased
+     * @param listPriceTotal
+     * @return
+     */
+    public BigDecimal applyDiscounts(Map<ProductCode, Integer> basket, BigDecimal listPriceTotal) {
+        for (Discount discount : discounts) {
+            BigDecimal amountToDiscount = discount.apply(basket, listPriceTotal);
+            listPriceTotal = listPriceTotal.subtract(amountToDiscount);
+        }
+        return listPriceTotal;
     }
 }

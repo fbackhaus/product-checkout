@@ -3,27 +3,33 @@ package com.novicap.checkout.model;
 import lombok.Builder;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 @Builder
 public class SpecialDiscount implements Discount {
 
     private final int minimumNumberOfItemsToPurchase;
     private final int numberOfItemsToCharge;
+    private final Product product;
 
     /**
      * Applies a SpecialDiscount if the conditions are met
      * A SpecialDiscount contains one or more free items if the customer buys more than x quantity of the product
      * e.g 2-for-1, 3-for-1, 3-for-2, etc
      *
-     * @param product product purchased
-     * @param purchasedQuantity purchased quantity of the product
-     * @return price after applying a special discount if the conditions are met, or full price if conditions are not met
+     * @param basket containing all the products the customer has purchased
+     * @param currentTotal current purchase total amount
+     * @return how much to discount from the total amount
      */
     @Override
-    public BigDecimal apply(Product product, int purchasedQuantity) {
-        return shouldApplyDiscount(purchasedQuantity) ?
-                calculateDiscountedPrice(product, purchasedQuantity) :
-                calculateListPrice(product, purchasedQuantity);
+    public BigDecimal apply(Map<ProductCode, Integer> basket, BigDecimal currentTotal) {
+        int purchasedQuantity = basket.get(product.getCode());
+
+        if (shouldApplyDiscount(purchasedQuantity)) {
+            basket.remove(product.getCode());
+            return calculateAmountToDiscount(product, purchasedQuantity);
+        }
+        return BigDecimal.ZERO;
     }
 
     /**
@@ -35,26 +41,9 @@ public class SpecialDiscount implements Discount {
         return purchasedQuantity >= minimumNumberOfItemsToPurchase;
     }
 
-    /**
-     * Calculates final price without a discount
-     * @param product product purchased
-     * @param purchasedQuantity purchased quantity of the product
-     * @return final price without a discount
-     */
-    private BigDecimal calculateListPrice(Product product, int purchasedQuantity) {
-        return product.getPrice().multiply(new BigDecimal(purchasedQuantity));
-    }
-
-    /**
-     * Calculates final price with the discount applied
-     *
-     * @param product product purchased
-     * @param purchasedQuantity quantity that the customer has purchased
-     * @return final price with the discount applied
-     */
-    private BigDecimal calculateDiscountedPrice(Product product, int purchasedQuantity) {
-        int itemsToCharge = getQuantityToCharge(purchasedQuantity);
-        return product.getPrice().multiply(new BigDecimal(itemsToCharge));
+    private BigDecimal calculateAmountToDiscount(Product product, int purchasedQuantity) {
+        int finalQuantity = purchasedQuantity - getQuantityToCharge(purchasedQuantity);
+        return product.getPrice().multiply(new BigDecimal(finalQuantity));
     }
 
     /**

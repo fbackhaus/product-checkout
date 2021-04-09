@@ -36,6 +36,7 @@ e.g. 2-for-1 in T-Shirts, 3-for-2 in mugs
 SpecialDiscount discount = SpecialDiscount.builder()
         .minimumNumberOfItemsToPurchase(minimumNumberOfItemsToPurchase)
         .numberOfItemsToCharge(numberOfItemsToCharge)
+        .product(product)
         .build();
 ```
 
@@ -45,6 +46,7 @@ e.g. a 2-for-1 discount
 SpecialDiscount discount = SpecialDiscount.builder()
         .minimumNumberOfItemsToPurchase(2)
         .numberOfItemsToCharge(1)
+        .product(product)
         .build();
 ```
 
@@ -56,6 +58,7 @@ A BulkPurchaseDiscount contains a discounted price per item if the customer buys
 BulkPurchaseDiscount discount = BulkPurchaseDiscount.builder()
         .minimumNumberOfItems(minToPurchase)
         .discountedPrice(priceToCharge)
+        .product(product)
         .build();
 ```
 
@@ -65,6 +68,7 @@ e.g. if the customer buys more than 3 T-Shirts, the price will be €19.00 inste
 BulkPurchaseDiscount discount = BulkPurchaseDiscount.builder()
         .minimumNumberOfItems(3)
         .discountedPrice(new BigDecimal("19.00"))
+        .product(product)
         .build();
 ```
 
@@ -80,23 +84,36 @@ Example, if you want to add a 2-for-1 special discount in vouchers, and a unit p
 customer buys 3 or more
 
 ```java
-//You need to create a Map<ProductCode, Discount> containing the discounts per product
-Map<ProductCode, Discount> discountRules = new HashMap<>();
+//You need to create a List<Discount> containing the discounts per product
+List<Discount> discounts = new ArrayList<>();
+
+//Create product that you wish to apply the discount to
+Product voucher = Product.builder()
+        .code(ProductCode.VOUCHER)
+        .price(new BigDecimal(5))
+        .build();
 
 //Adding voucher discount
 SpecialDiscount voucherDiscount = SpecialDiscount.builder()
         .minimumNumberOfItemsToPurchase(2)
         .numberOfItemsToCharge(1)
+        .product(voucher)
         .build();
 
-discountRules.put(ProductCode.VOUCHER, voucherDiscount)
+discountRules.add(voucherDiscount);
+
+Product tShirt = Product.builder()
+        .code(ProductCode.TSHIRT)
+        .price(new BigDecimal(20))
+        .build();
 
 BulkPurchaseDiscount tShirtDiscount = BulkPurchaseDiscount.builder()
         .minimumNumberOfItems(3)
         .discountedPrice(new BigDecimal("19.00"))
+        .product(tShirt)
         .build();
 
-discountRules.put(ProductCode.TSHIRT, tShirtDiscount)
+discountRules.add(tShirtDiscount);
 
 //Create checkout
 Checkout checkout = new Checkout(discountRules);
@@ -141,3 +158,27 @@ and calculate the total purchase value, returning it as a `BigDecimal` object.
 ```java
 BigDecimal total = checkout.total();
 ```
+
+## Pairing Session
+### Swag discount
+- Voucher + Mug + TShirt = €20
+
+```java
+SwagDiscount discount = SwagDiscount.builder()
+    .products(products)
+    .price(price)
+    .build();
+```
+  
+### Total price discount
+- If you spend more than €20 the 10% off
+
+```java
+FinalPriceDiscount discount = FinalPriceDiscount.builder()
+    .minimumSpent(20) //BigDecimal
+    .discount(0.1) //10%
+    .build();
+```
+  
+### Other discounts
+Make the application less coupled, so that any discount can be applied in any order

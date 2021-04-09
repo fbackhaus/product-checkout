@@ -3,16 +3,13 @@
  */
 package com.novicap.checkout;
 
-import com.novicap.checkout.model.BulkPurchaseDiscount;
-import com.novicap.checkout.model.Discount;
-import com.novicap.checkout.model.ProductCode;
-import com.novicap.checkout.model.SpecialDiscount;
+import com.novicap.checkout.model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 class CheckoutTest {
 
@@ -31,31 +28,32 @@ class CheckoutTest {
 
     @Test
     void createCheckoutWithSpecialDiscount() {
-        Map<ProductCode, Discount> discountRules = new HashMap<>();
-        discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
+        List<Discount> discounts = new ArrayList<>();
+        discounts.add(getSpecialDiscount(ProductCode.VOUCHER, new BigDecimal(5), 2, 1));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.VOUCHER);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(5));
     }
 
     @Test
     void createCheckoutWithBulkPurchaseDiscount() {
-        Map<ProductCode, Discount> discountRules = new HashMap<>();
-        discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
+        List<Discount> discounts = new ArrayList<>();
+        discounts.add(getBulkPurchaseDiscount(ProductCode.TSHIRT, new BigDecimal(20), 3, new BigDecimal(1).setScale(2)));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.TSHIRT, ProductCode.TSHIRT, ProductCode.TSHIRT);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(57));
     }
 
     @Test
     void testCheckoutWithChallengeExamples() {
-        Map<ProductCode, Discount> discountRules = new HashMap<>();
-        discountRules.put(ProductCode.VOUCHER, getSpecialDiscount(2, 1));
-        discountRules.put(ProductCode.TSHIRT, getBulkPurchaseDiscount(3, new BigDecimal(19).setScale(2)));
+        List<Discount> discounts = new ArrayList<>();
+        discounts.add(getSpecialDiscount(ProductCode.VOUCHER, new BigDecimal(5), 2, 1));
+        discounts.add(getBulkPurchaseDiscount(ProductCode.TSHIRT, new BigDecimal(20), 3, new BigDecimal(1).setScale(2)));
 
-        givenAListOfDiscountRules(discountRules);
+
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.VOUCHER, ProductCode.TSHIRT, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal("32.50"));
 
@@ -73,46 +71,58 @@ class CheckoutTest {
 
     @Test
     void createCheckoutWith3for2SpecialDiscount() {
-        Map<ProductCode, Discount> discountRules = new HashMap<>();
-        discountRules.put(ProductCode.MUG, getSpecialDiscount(3, 2));
+        List<Discount> discounts = new ArrayList<>();
+        discounts.add(getSpecialDiscount(ProductCode.MUG, new BigDecimal("7.50"), 3, 2));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(15));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(15));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal("22.50"));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(30));
 
-        givenAListOfDiscountRules(discountRules);
+        givenAListOfDiscountRules(discounts);
         whenIScanTheseProducts(ProductCode.MUG, ProductCode.MUG, ProductCode.MUG,
                 ProductCode.MUG, ProductCode.MUG, ProductCode.MUG);
         thenTheExpectedPriceMatchesTheTotal(new BigDecimal(30));
     }
 
-    private SpecialDiscount getSpecialDiscount(int minToPurchase, int itemsToCharge) {
+    private SpecialDiscount getSpecialDiscount(ProductCode productCode, BigDecimal listPrice, int minToPurchase, int itemsToCharge) {
+        Product product = Product.builder()
+                .code(productCode)
+                .price(listPrice)
+                .build();
+
         return SpecialDiscount.builder()
+                .product(product)
                 .minimumNumberOfItemsToPurchase(minToPurchase)
                 .numberOfItemsToCharge(itemsToCharge)
                 .build();
     }
 
-    private BulkPurchaseDiscount getBulkPurchaseDiscount(int minToPurchase, BigDecimal priceToCharge) {
+    private BulkPurchaseDiscount getBulkPurchaseDiscount(ProductCode productCode, BigDecimal listPrice, int minToPurchase, BigDecimal discountPerUnit) {
+        Product product = Product.builder()
+                .code(productCode)
+                .price(listPrice)
+                .build();
+
         return BulkPurchaseDiscount.builder()
+                .product(product)
                 .minimumNumberOfItems(minToPurchase)
-                .discountedPrice(priceToCharge)
+                .discountPerUnit(discountPerUnit)
                 .build();
     }
 
-    private void givenAListOfDiscountRules(Map<ProductCode, Discount> discountRules) {
+    private void givenAListOfDiscountRules(List<Discount> discountRules) {
         checkout = new Checkout(discountRules);
     }
 
